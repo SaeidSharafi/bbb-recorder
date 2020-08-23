@@ -65,9 +65,7 @@ if (platform == "linux") {
 
 async function main() {
     try {
-        if (platform == "linux") {
-            xvfb.startSync()
-        }
+
 
         const dirs = fs.readdirSync(recordingsPath, {
             withFileTypes: true
@@ -76,6 +74,9 @@ async function main() {
         urls = []
         //dirs.forEach(element => {
         asyncForEach(dirs, async (element) => {
+            if (platform == "linux") {
+                xvfb.startSync()
+            }
             urls.push(bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element);
             url = bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element;
             var meeting_id = element;
