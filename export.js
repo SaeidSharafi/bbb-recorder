@@ -1,178 +1,237 @@
 const puppeteer = require('puppeteer');
-const Xvfb      = require('xvfb');
+const Xvfb = require('xvfb');
 const fs = require('fs');
 const os = require('os');
+const yargs = require('yargs');
 const homedir = os.homedir();
 const platform = os.platform();
-const { copyToPath, playbackFile } = require('./env');
-const spawn = require('child_process').spawn;
 
-var xvfb        = new Xvfb({
+const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
+
+const spawn = require('child_process').spawn;
+const path = require('path');
+
+const argv = yargs
+    .usage('Usage: $0')
+    .alias('n','name')
+    .nargs('n',1)
+    .describe('n','file name')
+    .default('n','output')
+    .alias('d','duration')
+    .nargs('d',1)
+    .describe('d','recording duration')
+    .alias('r','rebuild')
+    .boolean('r')
+    .boolean('c')
+    .nargs('r',0)
+    .describe('r','rebuild all recordings')
+    .alias('c','mp4')
+    .nargs('c',0)
+    .describe('c','save files as mp4')
+    .argv;
+
+
+var xvfb = new Xvfb({
     silent: true,
     xvfb_args: ["-screen", "0", "1280x800x24", "-ac", "-nolisten", "tcp", "-dpi", "96", "+extension", "RANDR"]
 });
-var width       = 1280;
-var height      = 720;
-var options     = {
-  headless: false,
-  args: [
-    '--enable-usermedia-screen-capturing',
-    '--allow-http-screen-capture',
-    '--auto-select-desktop-capture-source=bbbrecorder',
-    '--load-extension=' + __dirname,
-    '--disable-extensions-except=' + __dirname,
-    '--disable-infobars',
-    '--no-sandbox',
-    '--shm-size=1gb',
-    '--disable-dev-shm-usage',
-    '--start-fullscreen',
-    '--app=https://www.google.com/',
-    `--window-size=${width},${height}`,
-  ],
+var width = 1280;
+var height = 720;
+var options = {
+    headless: false,
+    args: [
+        '--enable-usermedia-screen-capturing',
+        '--allow-http-screen-capture',
+        '--auto-select-desktop-capture-source=bbbrecorder',
+        '--load-extension=' + __dirname,
+        '--disable-extensions-except=' + __dirname,
+        '--disable-infobars',
+        '--no-sandbox',
+        '--shm-size=1gb',
+        '--disable-dev-shm-usage',
+        '--start-fullscreen',
+        '--app=https://www.google.com/',
+        `--window-size=${width},${height}`,
+    ],
 }
 
-if(platform == "linux"){
+if (platform == "linux") {
     options.executablePath = "/usr/bin/google-chrome"
-}else if(platform == "darwin"){
+} else if (platform == "darwin") {
     options.executablePath = "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
+} else {
+    options.executablePath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
 }
 
 async function main() {
-    try{
-        if(platform == "linux"){
+    try {
+        if (platform == "linux") {
             xvfb.startSync()
         }
 
-        var url = process.argv[2];
-        if(!url){
-            console.warn('URL undefined!');
-            process.exit(1);
-        }
-        // Verify if recording URL has the correct format
-        var urlRegex = new RegExp('^https?:\\/\\/.*\\/playback\\/presentation\\/2\\.0\\/' + playbackFile + '\\?meetingId=[a-z0-9]{40}-[0-9]{13}');
-        if(!urlRegex.test(url)){
-            console.warn('Invalid recording URL!');
-            process.exit(1);
-        }
+        const dirs = fs.readdirSync(recordingsPath, {
+            withFileTypes: true
+        }).filter(c => c.isDirectory()).map(c => c.name);
+        console.log(dirs);
+        urls = []
+        //dirs.forEach(element => {
+        asyncForEach(dirs, async (element) => {
+            urls.push(bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element);
+            url = bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element;
+            var meeting_id = element;
+            // var url = process.argv[2];
+            // if (urls.length > 0)
+            //     url = urls[0];
+            var rebuild = argv.rebuild;
+            var exportname = argv.name;
+            var convert = argv.mp4
+            if(!rebuild){
+                let extension = convert ? ".mp4" : ".webm";
 
-        var exportname = process.argv[3];
-        // Use meeting ID as export name if it isn't defined or if its value is "MEETING_ID"
-        if(!exportname || exportname == "MEETING_ID"){
-            exportname = url.split("=")[1] + '.webm';
-        }
+                let destinationPath = copyToPath + "/";
+                if (meeting_id)
+                    destinationPath = copyToPath + "/" + meeting_id + "/";
+                let target = destinationPath + exportname + extension;
+                if (fs.existsSync(target)){
+                    console.warn(target + ' Already exist! skipping...');
+                    return;
+                }
+            }
 
-        var duration = process.argv[4];
-        // If duration isn't defined, set it in 0
-        if(!duration){
-            duration = 0;
-        // Check if duration is a natural number
-        }else if(!Number.isInteger(Number(duration)) || duration < 0){
-            console.warn('Duration must be a natural number!');
-            process.exit(1);
-        }
+            if (!url) {
+                console.warn('URL undefined!');
+                process.exit(1);
+            }
+            // Verify if recording URL has the correct format
+            var urlRegex = new RegExp('^https?:\\/\\/.*\\/playback\\/presentation\\/2\\.0\\/' + playbackFile + '\\?meetingId=[a-z0-9]{40}-[0-9]{13}');
+            if (!urlRegex.test(url)) {
+                console.warn('Invalid recording URL!');
+                process.exit(1);
+            }
 
-        var convert = process.argv[5]
-        if(!convert){
-            convert = false
-        }else if(convert !== "true" && convert !== "false"){
-            console.warn("Invalid convert value!");
-            process.exit(1);
-        }
 
-        const browser = await puppeteer.launch(options)
-        const pages = await browser.pages()
+            exportname += "webm";
+            // Use meeting ID as export name if it isn't defined or if its value is "MEETING_ID"
+            if (!exportname || exportname == "MEETING_ID") {
+                exportname = element + '.webm';
+            }
 
-        const page = pages[0]
+            var duration = argv.duration;
+            // If duration isn't defined, set it in 0
+            if (!duration) {
+                duration = 0;
+                // Check if duration is a natural number
+            } else if (!Number.isInteger(Number(duration)) || duration < 0) {
+                console.warn('Duration must be a natural number!');
+                process.exit(1);
+            }
 
-        page.on('console', msg => {
-            var m = msg.text();
-            //console.log('PAGE LOG:', m) // uncomment if you need
+            if (!convert) {
+                convert = false
+            } else if (convert !== true && convert !== true) {
+                console.warn("Invalid convert value!" + convert);
+                process.exit(1);
+            }
+
+            const browser = await puppeteer.launch(options)
+            const pages = await browser.pages()
+
+            const page = pages[0]
+
+            page.on('console', msg => {
+                var m = msg.text();
+                //console.log('PAGE LOG:', m) // uncomment if you need
+            });
+
+            await page._client.send('Emulation.clearDeviceMetricsOverride')
+            // Catch URL unreachable error
+            await page.goto(url, {waitUntil: 'networkidle2'}).catch(e => {
+                console.error('Recording URL unreachable!');
+                process.exit(2);
+            })
+            await page.setBypassCSP(true)
+
+            // Check if recording exists (search "Recording not found" message)
+            var loadMsg = await page.evaluate(() => {
+                return document.getElementById("load-msg").textContent;
+            });
+            if (loadMsg == "Recording not found") {
+                console.warn("Recording not found!");
+                process.exit(1);
+            }
+
+            // Get recording duration
+            var recDuration = await page.evaluate(() => {
+                return document.getElementById("video").duration;
+            });
+            // If duration was set to 0 or is greater than recDuration, use recDuration value
+            if (duration == 0 || duration > recDuration) {
+                duration = recDuration;
+            }
+
+            await page.waitForSelector('button[class=acorn-play-button]');
+            await page.$eval('#navbar', element => element.style.display = "none");
+            await page.$eval('#copyright', element => element.style.display = "none");
+            await page.$eval('.acorn-controls', element => element.style.opacity = "0");
+            await page.click('button[class=acorn-play-button]', {waitUntil: 'domcontentloaded'});
+
+            await page.evaluate((x) => {
+                console.log("REC_START");
+                window.postMessage({type: 'REC_START'}, '*')
+            })
+
+            // Perform any actions that have to be captured in the exported video
+            await page.waitFor((duration * 1000))
+
+            await page.evaluate(filename => {
+                window.postMessage({type: 'SET_EXPORT_PATH', filename: filename}, '*')
+                window.postMessage({type: 'REC_STOP'}, '*')
+            }, exportname)
+
+            // Wait for download of webm to complete
+            await page.waitForSelector('html.downloadComplete', {timeout: 0})
+            await page.close()
+            await browser.close()
+
+            if (platform == "linux") {
+                xvfb.stopSync()
+            }
+
+            if (convert) {
+                convertAndCopy(exportname, meeting_id)
+            } else {
+                copyOnly(exportname, meeting_id)
+            }
         });
-
-        await page._client.send('Emulation.clearDeviceMetricsOverride')
-        // Catch URL unreachable error
-        await page.goto(url, {waitUntil: 'networkidle2'}).catch(e => {
-            console.error('Recording URL unreachable!');
-            process.exit(2);
-        })
-        await page.setBypassCSP(true)
-
-        // Check if recording exists (search "Recording not found" message)
-        var loadMsg = await page.evaluate(() => {
-            return document.getElementById("load-msg").textContent;
-        });
-        if(loadMsg == "Recording not found"){
-            console.warn("Recording not found!");
-            process.exit(1);
-        }
-
-        // Get recording duration
-        var recDuration = await page.evaluate(() => {
-            return document.getElementById("video").duration;
-        });
-        // If duration was set to 0 or is greater than recDuration, use recDuration value
-        if(duration == 0 || duration > recDuration){
-            duration = recDuration;
-        }
-
-        await page.waitForSelector('button[class=acorn-play-button]');
-        await page.$eval('#navbar', element => element.style.display = "none");
-        await page.$eval('#copyright', element => element.style.display = "none");
-        await page.$eval('.acorn-controls', element => element.style.opacity = "0");
-        await page.click('button[class=acorn-play-button]', {waitUntil: 'domcontentloaded'});
-
-        await page.evaluate((x) => {
-            console.log("REC_START");
-            window.postMessage({type: 'REC_START'}, '*')
-        })
-
-        // Perform any actions that have to be captured in the exported video
-        await page.waitFor((duration * 1000))
-
-        await page.evaluate(filename=>{
-            window.postMessage({type: 'SET_EXPORT_PATH', filename: filename}, '*')
-            window.postMessage({type: 'REC_STOP'}, '*')
-        }, exportname)
-
-        // Wait for download of webm to complete
-        await page.waitForSelector('html.downloadComplete', {timeout: 0})
-        await page.close()
-        await browser.close()
-
-        if(platform == "linux"){
-            xvfb.stopSync()
-        }
-
-        if(convert){
-            convertAndCopy(exportname)
-        }else{
-            copyOnly(exportname)
-        }
-
-    }catch(err) {
+    } catch (err) {
         console.log(err)
     }
+
 }
 
 main()
 
-function convertAndCopy(filename){
+function convertAndCopy(filename, meeting_id = "") {
 
     var copyFromPath = homedir + "/Downloads";
     var onlyfileName = filename.split(".webm")
     var mp4File = onlyfileName[0] + ".mp4"
     var copyFrom = copyFromPath + "/" + filename + ""
-    var copyTo = copyToPath + "/" + mp4File;
+    let destinationPath = copyToPath + "/";
+    if (meeting_id)
+        destinationPath = copyToPath + "/" + meeting_id + "/";
 
-    if(!fs.existsSync(copyToPath)){
-        fs.mkdirSync(copyToPath);
+    var copyTo = destinationPath + mp4File;
+
+    if (!fs.existsSync(destinationPath)) {
+        fs.mkdirSync(destinationPath);
     }
 
     console.log(copyTo);
     console.log(copyFrom);
 
     const ls = spawn('ffmpeg',
-        [   '-y',
+        ['-y',
             '-i "' + copyFrom + '"',
             '-c:v libx264',
             '-preset veryfast',
@@ -186,7 +245,6 @@ function convertAndCopy(filename){
         {
             shell: true
         }
-
     );
 
     ls.stdout.on('data', (data) => {
@@ -199,8 +257,7 @@ function convertAndCopy(filename){
 
     ls.on('close', (code) => {
         console.log(`child process exited with code ${code}`);
-        if(code == 0)
-        {
+        if (code == 0) {
             console.log("Convertion done to here: " + copyTo)
             fs.unlinkSync(copyFrom);
             console.log('successfully deleted ' + copyFrom);
@@ -210,13 +267,16 @@ function convertAndCopy(filename){
 
 }
 
-function copyOnly(filename){
-
+function copyOnly(filename, meeting_id = "") {
+    var onlyfileName = filename.split(".webm")
     var copyFrom = homedir + "/Downloads/" + filename;
-    var copyTo = copyToPath + "/" + filename;
+    let destinationPath = copyToPath + "/";
+    if (meeting_id)
+        destinationPath = copyToPath + "/" + meeting_id + "/";
+    var copyTo = destinationPath + filename;
 
-    if(!fs.existsSync(copyToPath)){
-        fs.mkdirSync(copyToPath);
+    if (!fs.existsSync(destinationPath)) {
+        fs.mkdirSync(destinationPath);
     }
 
     try {
@@ -228,5 +288,11 @@ function copyOnly(filename){
         console.log('successfully delete ' + copyFrom);
     } catch (err) {
         console.log(err)
+    }
+}
+
+async function asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+        await callback(array[index], index, array);
     }
 }
