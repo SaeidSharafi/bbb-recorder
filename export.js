@@ -110,7 +110,7 @@ async function main() {
             }
 
 
-            exportname += "webm";
+            exportname += ".webm";
             // Use meeting ID as export name if it isn't defined or if its value is "MEETING_ID"
             if (!exportname || exportname == "MEETING_ID") {
                 exportname = element + '.webm';
