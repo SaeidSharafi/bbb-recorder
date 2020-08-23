@@ -54,7 +54,7 @@ var options = {
         `--window-size=${width},${height}`,
     ],
 }
-
+require('console-stamp')(console, { pattern: 'dd/mm/yyyy HH:MM:ss' });
 if (platform == "linux") {
     options.executablePath = "/usr/bin/google-chrome"
 } else if (platform == "darwin") {
@@ -71,22 +71,21 @@ async function main() {
             withFileTypes: true
         }).filter(c => c.isDirectory()).map(c => c.name);
         console.log(dirs);
-        urls = []
-        //dirs.forEach(element => {
+
         asyncForEach(dirs, async (element) => {
             if (platform == "linux") {
                 xvfb.startSync()
             }
-            urls.push(bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element);
+
             url = bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element;
             var meeting_id = element;
-            // var url = process.argv[2];
-            // if (urls.length > 0)
-            //     url = urls[0];
+            console.log("Initializing options for meeting"+ meeting_id)
+
             var rebuild = argv.rebuild;
             var exportname = argv.name;
             var convert = argv.mp4
             if(!rebuild){
+
                 let extension = convert ? ".mp4" : ".webm";
 
                 let destinationPath = copyToPath + "/";
@@ -97,12 +96,15 @@ async function main() {
                     console.warn(target + ' Already exist! skipping...');
                     return;
                 }
+            }else {
+                console.log("Rebuilding all recordings")
             }
 
             if (!url) {
                 console.warn('URL undefined!');
                 process.exit(1);
             }
+            console.log("Checking for url");
             // Verify if recording URL has the correct format
             var urlRegex = new RegExp('^https?:\\/\\/.*\\/playback\\/presentation\\/2\\.0\\/' + playbackFile + '\\?meetingId=[a-z0-9]{40}-[0-9]{13}');
             if (!urlRegex.test(url)) {
@@ -133,7 +135,7 @@ async function main() {
                 console.warn("Invalid convert value!" + convert);
                 process.exit(1);
             }
-
+            console.log("Opening Browser");
             const browser = await puppeteer.launch(options)
             const pages = await browser.pages()
 
@@ -175,7 +177,7 @@ async function main() {
             await page.$eval('#copyright', element => element.style.display = "none");
             await page.$eval('.acorn-controls', element => element.style.opacity = "0");
             await page.click('button[class=acorn-play-button]', {waitUntil: 'domcontentloaded'});
-
+            console.log("Start recording");
             await page.evaluate((x) => {
                 console.log("REC_START");
                 window.postMessage({type: 'REC_START'}, '*')
@@ -190,20 +192,25 @@ async function main() {
             }, exportname)
 
             // Wait for download of webm to complete
+            console.log("stop recording");
+            console.log("waiting for download to complete");
             await page.waitForSelector('html.downloadComplete', {timeout: 0})
             await page.close()
             await browser.close()
+            console.log("terminating browser");
 
+            if (convert) {
+                console.log("Converting to mp4");
+                convertAndCopy(exportname, meeting_id)
+            } else {
+                console.log("moving to target destination");
+                copyOnly(exportname, meeting_id)
+            }
             if (platform == "linux") {
                 xvfb.stopSync()
             }
-
-            if (convert) {
-                convertAndCopy(exportname, meeting_id)
-            } else {
-                copyOnly(exportname, meeting_id)
-            }
         });
+
     } catch (err) {
         console.log(err)
     }

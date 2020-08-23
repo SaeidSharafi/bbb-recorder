@@ -35,7 +35,7 @@ sudo apt-get install ffmpeg
 Clone the project first:
 
 ```javascript
-git clone https://github.com/jibon57/bbb-recorder
+git clone https://github.com/SaeidSharafi/bbb-recorder
 cd bbb-recorder
 npm install --ignore-scripts
 cp .env.example .env
@@ -44,17 +44,17 @@ cp .env.example .env
 ### Recording export
 
 ```sh
-node export.js "https://BBB_HOST/playback/presentation/2.0/playback.html?meetingId=MEETING_ID" meeting.webm 10 true
+node export.js -n output d- 10 --mp4 --rebuild
 ```
 
 **Options**
 
 You can pass 4 args
 
-1) BBB recording link (mandatory)
-2) (Optional) Export file name (should be `.webm` at end). You can use "MEETING_ID" (without `.webm`) to set the meeting ID as export name. Default: MEETING_ID
-3) (Optional) Duration of recording (in seconds). You can set it to 0 use the real duration of recording. Default: real duration of recording
-4) (Optional) Convert to mp4 or not (true for convert to mp4). Default: false
+1) (Optional) -n Export file name (no extension). You can use "MEETING_ID" (without `.webm`) to set the meeting ID as export name. Default: MEETING_ID
+2) (Optional) -d Duration of recording (in seconds). You can set it to 0 use the real duration of recording. Default: real duration of recording
+3) (Optional) --mp4 Convert to mp4
+4) (optional) --rebuild replace rendered files. by default, it will skip if file exist inside download directory.
 
 
 ### Live recording
