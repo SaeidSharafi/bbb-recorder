@@ -35,5 +35,6 @@ echo $$ >>"${lockdir}/$$"
 echo "[$(date)] Cron task started" >>sc.log
 
 echo "[$(date)] starting recording script" >>sc.log
-cd /home/kuro/bbb-recorder /usr/local/bin/node export.js --lockdir $lockdir --rebuild f >app.log 2>&1
+cd /home/kuro/bbb-recorder
+/usr/local/bin/node export.js --lockdir $lockdir --rebuild f >app.log 2>&1
 
