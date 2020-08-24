@@ -18,7 +18,7 @@ for ((i = 1; i <= SPAWNS; i++)); do
       pid=$(basename "${entry}")
       echo "Loc Directory: ${entry}" 2>>"${scriptLog}"
       echo "job pid: ${pid}" 2>>"${scriptLog}"
-      sudo kill -QUIT "${pid}" &
+      kill -QUIT "${pid}" &
       echo "${pid} stopped" 2>>"${scriptLog}"
     done
   fi
