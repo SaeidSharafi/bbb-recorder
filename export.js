@@ -6,6 +6,10 @@ const yargs = require('yargs');
 const homedir = os.homedir();
 const platform = os.platform();
 process.title="bbbrecorder"
+process.on('SIGQUIT', function() {
+    console.warn("Force Closing");
+    process.exit(1);
+});
 const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
 
 const spawn = require('child_process').spawn;
