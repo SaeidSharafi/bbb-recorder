@@ -1,7 +1,8 @@
 #!/bin/bash
 . /home/kuro/.bashrc
-if [ -f /etc/bbb-recorder/.env ]; then
-  export $(cat .env | sed 's/#.*//g' | xargs)
+envFile=/etc/bbb-recorder/.env
+if [ -f "$envFile" ]; then
+  export $(cat "$envFile" | sed 's/#.*//g' | xargs)
 else
   echo ".env file cannot be found" 2>>sc.log
   exit 1

@@ -2,13 +2,16 @@
 . /home/kuro/.bashrc
 # Check if we are root
 uid=$(id -u)
-if [ $uid -ne 0 ]
-then
-    echo "Please run as root"
-    exit 1
+if [ $uid -ne 0 ]; then
+  echo "Please run as root"
+  exit 1
 fi
-mkdir "/etc/bbb-recorder"
-
+if [[ ! -d $templockdir ]]; then
+  mkdir "/etc/bbb-recorder"
+fi
+rm .env
 cp .env.example /etc/bbb-recorder/.env
-ln -s /etc/bbb-recorder/.env .env
+if [[ ! -L .env ]]; then
+  ln -s /etc/bbb-recorder/.env .env
+fi
 chmod 0755 /etc/bbb-recorder/.env
