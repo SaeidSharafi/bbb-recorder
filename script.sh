@@ -15,14 +15,17 @@ then
       exit 1
     else
       mkdir $lockdir3
+      lockdir=$lockdir1
       echo "[$(date)] lockdir3 created" 2>>sc.log
     fi
   else
     mkdir $lockdir2
+    lockdir=$lockdir1
     echo "[$(date)] lockdir2 created" 2>>sc.log
   fi
 else
   mkdir $lockdir1
+  lockdir=$lockdir1
   echo "[$(date)] lockdir1 created" 2>>sc.log
 fi
 
