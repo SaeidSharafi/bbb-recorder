@@ -10,8 +10,8 @@ process.on('SIGQUIT', function() {
     console.warn("Force Closing");
     process.exit(1);
 });
-logger.debug(process.title)
-logger.debug('Giving process a custom name: bbbrecorder')
+console.debug(process.title)
+console.debug('Giving process a custom name: bbbrecorder')
 process.title = "bbbrecorder"
 
 logger.debug('Process started. PID: ' + process.pid + ' | name: ' + process.title)
