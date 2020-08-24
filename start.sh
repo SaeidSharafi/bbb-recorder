@@ -10,7 +10,7 @@ else
 fi
 echo "[$(date)] Cron task started" 2>>"${scriptLog}"
 lockdir=""
-for ((i = 0; i < SPAWNS; i++)); do
+for ((i = 1; i <= SPAWNS; i++)); do
   templockdir="${baseLockDir}/bbb-recorder-lockdir-${i}"
   if [[ -d $templockdir ]]; then
     continue

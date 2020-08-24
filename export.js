@@ -30,7 +30,7 @@ const argv = yargs
     .describe('c', 'save files as mp4')
     .argv;
 
-process.title = "bbbrecorder"
+
 process.on('SIGQUIT', function () {
     console.warn("Force Closing");
 
