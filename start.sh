@@ -1,7 +1,7 @@
 #!/bin/bash
 . /home/kuro/.bashrc
 echo "[$(date)] Cron task started" 2>>sc.log
-if [ -f .env ]; then
+if [ -f /etc/bbb-recorder/.env ]; then
   export $(cat .env | sed 's/#.*//g' | xargs)
 else
   echo ".env file cannot be found" 2>>sc.log
