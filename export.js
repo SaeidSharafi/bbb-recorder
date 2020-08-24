@@ -5,7 +5,7 @@ const os = require('os');
 const yargs = require('yargs');
 const homedir = os.homedir();
 const platform = os.platform();
-
+process.title="bbbrecorder"
 const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
 
 const spawn = require('child_process').spawn;
@@ -218,7 +218,10 @@ async function main() {
 }
 
 main()
-
+function killScript(){
+    console.warn("Force Closing");
+    process.exit(1);
+}
 function convertAndCopy(filename, meeting_id = "") {
 
     var copyFromPath = homedir + "/Downloads";
