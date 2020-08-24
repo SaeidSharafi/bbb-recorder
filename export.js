@@ -42,8 +42,8 @@ console.debug(process.title)
 console.debug('Giving process a custom name: bbbrecorder')
 process.title = "bbbrecorder"
 console.debug('Process started. PID: ' + process.pid + ' | name: ' + process.title)
-
-fs.writeFileSync(argv.lockdir+"/"+process.pid)
+console.debug(argv.lockdir+"/"+process.pid)
+fs.writeFileSync(argv.lockdir+"/"+process.pid,"")
 
 const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
 
