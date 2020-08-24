@@ -4,7 +4,7 @@ envFile=/etc/bbb-recorder/.env
 if [ -f "$envFile" ]; then
   export $(cat "$envFile" | sed 's/#.*//g' | xargs)
 else
-  echo ".env file cannot be found" 2>>"${scriptLog}"
+  echo ".env file cannot be found"
   exit 1
 fi
 echo "[$(date)] Cron task started" 2>>"${scriptLog}"
