@@ -32,6 +32,13 @@ process.on('SIGQUIT', function() {
     console.warn("Force Closing");
     try {
         fs.unlinkSync(argv.lockdir+"/"+process.pid)
+        fs.rmdirSync(argv.lockdir, { recursive: true }, (err) => {
+            if (err) {
+                throw err;
+            }
+
+            console.log(`${argv.lockdir} is deleted!`);
+        });
         //file removed
     } catch(err) {
         console.error(err)

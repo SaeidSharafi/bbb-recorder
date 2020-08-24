@@ -17,18 +17,18 @@ for ((i = 1; i <= SPAWNS; i++)); do
     lockdir=$templockdir
     mkdir $lockdir
     echo "[$(date)] ${lockdir} created" 2>>sc.log
-    break
+    echo "[$(date)] starting recording script" 2>>sc.log
+  cd /home/kuro/bbb-recorder
+  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --rebuild >app.log 2>&1 &
   fi
 done
-trap 'rm -rf $lockdir' EXIT INT TERM
+#trap 'rm -rf $lockdir' EXIT INT TERM
 
 if [ -z "${lockdir}" ]; then
   echo "All dir locked, stopping script" 2>>sc.log
   exit 1
 else
-  echo "[$(date)] starting recording script" 2>>sc.log
-  cd /home/kuro/bbb-recorder
-  /usr/local/bin/node export.js --lockdir "${lockdir}" --rebuild >app.log 2>&1
+  echo "Started ${SPAWNS} jobs, use stop.sh to kill the process" 2>>sc.log
 fi
 
 # take pains to remove lock directory when script terminates
