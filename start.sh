@@ -1,11 +1,11 @@
 #!/bin/bash
 . /home/kuro/.bashrc
-echo "[$(date)] Cron task started" 2>>sc.log
+echo "[$(date)] Cron task started" 2>>"${scriptLog}"
 envFile=/etc/bbb-recorder/.env
 if [ -f "$envFile" ]; then
   export $(cat "$envFile" | sed 's/#.*//g' | xargs)
 else
-  echo ".env file cannot be found" 2>>sc.log
+  echo ".env file cannot be found" 2>>"${scriptLog}"
   exit 1
 fi
 lockdir=""
@@ -16,19 +16,19 @@ for ((i = 1; i <= SPAWNS; i++)); do
   else
     lockdir=$templockdir
     mkdir $lockdir
-    echo "[$(date)] ${lockdir} created" 2>>sc.log
-    echo "[$(date)] starting recording script" 2>>sc.log
+    echo "[$(date)] ${lockdir} created" 2>>"${scriptLog}"
+    echo "[$(date)] starting recording script" 2>>"${scriptLog}"
   cd /home/kuro/bbb-recorder
-  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --rebuild >app.log 2>&1 &
+  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --rebuild >"${appLog}" 2>&1 &
   fi
 done
 #trap 'rm -rf $lockdir' EXIT INT TERM
 
 if [ -z "${lockdir}" ]; then
-  echo "All dir locked, stopping script" 2>>sc.log
+  echo "All dir locked, stopping script" 2>>"${scriptLog}"
   exit 1
 else
-  echo "Started ${SPAWNS} jobs, use stop.sh to kill the process" 2>>sc.log
+  echo "Started ${SPAWNS} jobs, use stop.sh to kill the process" 2>>"${scriptLog}"
 fi
 
 # take pains to remove lock directory when script terminates
