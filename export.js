@@ -14,7 +14,7 @@ console.debug(process.title)
 console.debug('Giving process a custom name: bbbrecorder')
 process.title = "bbbrecorder"
 
-logger.debug('Process started. PID: ' + process.pid + ' | name: ' + process.title)
+console.debug('Process started. PID: ' + process.pid + ' | name: ' + process.title)
 const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
 
 const spawn = require('child_process').spawn;
