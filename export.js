@@ -7,52 +7,88 @@ const homedir = os.homedir();
 const platform = os.platform();
 const argv = yargs
     .usage('Usage: $0 --lockdir [proccess-lock directory]')
-    .alias('l','lockdir')
-    .nargs('l',1)
-    .describe('l','proccess-lock directory address (without')
-    .alias('n','name')
-    .nargs('n',1)
-    .describe('n','file name')
-    .default('n','output')
-    .alias('d','duration')
-    .nargs('d',1)
-    .describe('d','recording duration')
-    .alias('r','rebuild')
+    .alias('l', 'lockdir')
+    .nargs('l', 1)
+    .describe('l', 'proccess-lock directory address')
+    .alias('i', 'index')
+    .nargs('i', 1)
+    .describe('i', 'spawn index')
+    .alias('n', 'name')
+    .nargs('n', 1)
+    .describe('n', 'file name')
+    .default('n', 'output')
+    .alias('d', 'duration')
+    .nargs('d', 1)
+    .describe('d', 'recording duration')
+    .alias('r', 'rebuild')
     .boolean('r')
     .boolean('c')
-    .nargs('r',0)
-    .describe('r','rebuild all recordings')
-    .alias('c','mp4')
-    .nargs('c',0)
-    .describe('c','save files as mp4')
+    .nargs('r', 0)
+    .describe('r', 'rebuild all recordings')
+    .alias('c', 'mp4')
+    .nargs('c', 0)
+    .describe('c', 'save files as mp4')
     .argv;
 
-process.title="bbbrecorder"
-process.on('SIGQUIT', function() {
+process.title = "bbbrecorder"
+process.on('SIGQUIT', function () {
     console.warn("Force Closing");
+
+    process.exit(1);
+});
+process.on('exit', (code) => {
+    console.log('Process exit event with code: ', code);
     try {
-        fs.unlinkSync(argv.lockdir+"/"+process.pid)
-        fs.rmdirSync(argv.lockdir, { recursive: true }, (err) => {
+
+        // Removing lock files in recording directories
+        const dirs = fs.readdirSync(recordingsPath, {
+            withFileTypes: true
+        }).filter(c => c.isDirectory()).map(c => c.name);
+
+        let max_rooms = Math.floor(dirs.length / SPAWNS);
+
+        var index = Math.floor((argv.index - 1) * max_rooms);
+        console.log("starting index (of all recordings): " + index);
+
+        var lastIndex = Math.floor((argv.index) * max_rooms);
+        console.log("last index (of all recordings): " + lastIndex);
+
+        if (lastIndex >= dirs.length || (argv.index == SPAWNS)) {
+            lastIndex = dirs.length
+        }
+        var slicedDirs = dirs.slice(index,lastIndex);
+        slicedDirs.forEach((dir)=>{
+            let lockFile = recordingsPath+"/"+dir + "/.locked";
+            console.log("removing: " + lockFile);
+            if (fs.existsSync(lockFile)) {
+                fs.unlinkSync(lockFile);
+            }
+        });
+
+        // Removing lock directories and proccess id
+        console.log("removing processlock: " + process.pid);
+        fs.unlinkSync(argv.lockdir + "/" + process.pid)
+        console.log("removing lockdir: " + argv.lockdir);
+        fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
             if (err) {
                 throw err;
             }
-
             console.log(`${argv.lockdir} is deleted!`);
         });
         //file removed
-    } catch(err) {
+    } catch (err) {
         console.error(err)
     }
-    process.exit(1);
 });
+
 console.debug(process.title)
 console.debug('Giving process a custom name: bbbrecorder')
 process.title = "bbbrecorder"
 console.debug('Process started. PID: ' + process.pid + ' | name: ' + process.title)
-console.debug(argv.lockdir+"/"+process.pid)
-fs.writeFileSync(argv.lockdir+"/"+process.pid,"")
+console.debug(argv.lockdir + "/" + process.pid)
+fs.writeFileSync(argv.lockdir + "/" + process.pid, "")
 
-const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
+const {copyToPath, playbackFile, bbbUrl, recordingsPath, SPAWNS} = require('./env');
 
 const spawn = require('child_process').spawn;
 const path = require('path');
@@ -81,7 +117,7 @@ var options = {
         `--window-size=${width},${height}`,
     ],
 }
-require('console-stamp')(console, { pattern: 'dd/mm/yyyy HH:MM:ss' });
+require('console-stamp')(console, {pattern: 'dd/mm/yyyy HH:MM:ss'});
 if (platform == "linux") {
     options.executablePath = "/usr/bin/google-chrome"
 } else if (platform == "darwin") {
@@ -93,39 +129,67 @@ if (platform == "linux") {
 async function main() {
     try {
 
+        var rebuild = argv.rebuild;
+        var exportname = argv.name;
+        var convert = argv.mp4
 
         const dirs = fs.readdirSync(recordingsPath, {
             withFileTypes: true
         }).filter(c => c.isDirectory()).map(c => c.name);
-        console.log(dirs);
 
-        asyncForEach(dirs, async (element) => {
+        if (!rebuild) {
+            let extension = convert ? ".mp4" : ".webm";
+            dirs.forEach( (dir,index,object) =>{
+                let target = copyToPath + "/" + dir + "/" + exportname + extension;
+                if (fs.existsSync(target)) {
+                    console.warn(target + ' Already exist! skipping...');
+                    object.splice(index,1);
+                }
+            } );
+
+        } else {
+            console.log("Rebuilding all recordings")
+        }
+        console.log("All recordings: \n\t\t\t\t" + dirs.join("\n\t\t\t\t"));
+
+        console.log("Number of recordings: "+dirs.length);
+
+        let max_rooms = Math.floor(dirs.length / SPAWNS);
+        console.log("Number of recordings to process: " + max_rooms);
+
+        var index = Math.floor((argv.index - 1) * max_rooms);
+        console.log("starting index (of all recordings): " + index);
+
+        var lastIndex = Math.floor((argv.index) * max_rooms);
+        console.log("last index (of all recordings): " + lastIndex);
+
+        if (lastIndex >= dirs.length || (argv.index == SPAWNS)) {
+            lastIndex = dirs.length
+        }
+        var slicedDirs = [];
+
+        for (; index < lastIndex; index++) {
+            let lockFile = recordingsPath+"/"+dirs[index] + "/.locked";
+            if (!fs.existsSync(lockFile)) {
+                console.log("locking "+dirs[index]);
+                fs.writeFileSync(lockFile, "")
+                slicedDirs.push(dirs[index]);
+            }else {
+                console.log(dirs[index]+ " is already locked, skiping ..");
+            }
+
+        }
+        console.log("recordings to process :\n\t\t\t\t" + slicedDirs.join("\n\t\t\t\t"));
+
+
+        asyncForEach(slicedDirs, async (element) => {
             if (platform == "linux") {
                 xvfb.startSync()
             }
 
             url = bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element;
             var meeting_id = element;
-            console.log("Initializing options for meeting"+ meeting_id)
-
-            var rebuild = argv.rebuild;
-            var exportname = argv.name;
-            var convert = argv.mp4
-            if(!rebuild){
-
-                let extension = convert ? ".mp4" : ".webm";
-
-                let destinationPath = copyToPath + "/";
-                if (meeting_id)
-                    destinationPath = copyToPath + "/" + meeting_id + "/";
-                let target = destinationPath + exportname + extension;
-                if (fs.existsSync(target)){
-                    console.warn(target + ' Already exist! skipping...');
-                    return;
-                }
-            }else {
-                console.log("Rebuilding all recordings")
-            }
+            console.log("Initializing options for meeting" + meeting_id)
 
             if (!url) {
                 console.warn('URL undefined!');
@@ -198,11 +262,11 @@ async function main() {
             if (duration == 0 || duration > recDuration) {
                 duration = recDuration;
             }
-
+            console.log("duration to record:" + duration);
             await page.waitForSelector('button[class=acorn-play-button]');
-            await page.$eval('#navbar', element => element.style.display = "none");
-            await page.$eval('#copyright', element => element.style.display = "none");
-            await page.$eval('.acorn-controls', element => element.style.opacity = "0");
+            //await page.$eval('#navbar', element => element.style.display = "none");
+            //await page.$eval('#copyright', element => element.style.display = "none");
+            //await page.$eval('.acorn-controls', element => element.style.opacity = "0");
             await page.click('button[class=acorn-play-button]', {waitUntil: 'domcontentloaded'});
             console.log("Start recording");
             await page.evaluate((x) => {
@@ -236,6 +300,11 @@ async function main() {
             if (platform == "linux") {
                 xvfb.stopSync()
             }
+
+            let lockFile = copyToPath + "/" + meeting_id + "/.locked";
+            if (fs.existsSync(lockFile)) {
+                fs.unlinkSync(lockFile);
+            }
         });
 
     } catch (err) {
@@ -245,10 +314,12 @@ async function main() {
 }
 
 main()
-function killScript(){
+
+function killScript() {
     console.warn("Force Closing");
     process.exit(1);
 }
+
 function convertAndCopy(filename, meeting_id = "") {
 
     var copyFromPath = homedir + "/Downloads";

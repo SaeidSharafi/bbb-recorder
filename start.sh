@@ -10,7 +10,7 @@ else
 fi
 echo "[$(date)] Cron task started" 2>>"${scriptLog}"
 lockdir=""
-for ((i = 1; i <= SPAWNS; i++)); do
+for ((i = 0; i < SPAWNS; i++)); do
   templockdir="${baseLockDir}/bbb-recorder-lockdir-${i}"
   if [[ -d $templockdir ]]; then
     continue
@@ -20,7 +20,7 @@ for ((i = 1; i <= SPAWNS; i++)); do
     echo "[$(date)] ${lockdir} created" 2>>"${scriptLog}"
     echo "[$(date)] starting recording script" 2>>"${scriptLog}"
   cd /home/kuro/bbb-recorder
-  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --rebuild >"${appLog}" 2>&1 &
+  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}" 2>&1 &
   fi
 done
 #trap 'rm -rf $lockdir' EXIT INT TERM
