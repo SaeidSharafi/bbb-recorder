@@ -5,23 +5,11 @@ const os = require('os');
 const yargs = require('yargs');
 const homedir = os.homedir();
 const platform = os.platform();
-process.title="bbbrecorder"
-process.on('SIGQUIT', function() {
-    console.warn("Force Closing");
-    process.exit(1);
-});
-console.debug(process.title)
-console.debug('Giving process a custom name: bbbrecorder')
-process.title = "bbbrecorder"
-
-console.debug('Process started. PID: ' + process.pid + ' | name: ' + process.title)
-const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
-
-const spawn = require('child_process').spawn;
-const path = require('path');
-
 const argv = yargs
-    .usage('Usage: $0')
+    .usage('Usage: $0 --lockdir [proccess-lock directory]')
+    .alias('l','lockdir')
+    .nargs('l',1)
+    .describe('l','proccess-lock directory address (without')
     .alias('n','name')
     .nargs('n',1)
     .describe('n','file name')
@@ -38,6 +26,29 @@ const argv = yargs
     .nargs('c',0)
     .describe('c','save files as mp4')
     .argv;
+
+process.title="bbbrecorder"
+process.on('SIGQUIT', function() {
+    console.warn("Force Closing");
+    try {
+        fs.unlinkSync(argv.lockdir+"/"+process.pid)
+        //file removed
+    } catch(err) {
+        console.error(err)
+    }
+    process.exit(1);
+});
+console.debug(process.title)
+console.debug('Giving process a custom name: bbbrecorder')
+process.title = "bbbrecorder"
+console.debug('Process started. PID: ' + process.pid + ' | name: ' + process.title)
+
+fs.writeFile(argv.lockdir+"/"+process.pid)
+
+const {copyToPath, playbackFile, bbbUrl, recordingsPath} = require('./env');
+
+const spawn = require('child_process').spawn;
+const path = require('path');
 
 
 var xvfb = new Xvfb({
