@@ -11,7 +11,7 @@ while true; do
   read -p "Warning! make sure no recording job is active in background and run stop.sh before running this script, do you want to continue? Y/n" yn
   case $yn in
   [Yy]*)
-    for ((i = 1; i <= SPAWNS; i++)); do
+    for ((i = 0; i <= SPAWNS; i++)); do
       lockdir="${baseLockDir}/bbb-recorder-lockdir-${i}"
       if [[ -d $lockdir ]]; then
         rm -rf "${lockdir}"
