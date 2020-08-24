@@ -11,9 +11,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8c52c74c-501d-4186-8a40-d902d4b55f4f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/export.js" beforeDir="false" afterPath="$PROJECT_DIR$/export.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/12/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/13/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/2/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/3/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/4/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/5/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/6/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/7/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/8/.locked" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dirtest/9/.locked" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +85,7 @@
       <option name="presentableId" value="Default" />
       <updated>1598183621635</updated>
       <workItem from="1598183622988" duration="22610000" />
-      <workItem from="1598263054963" duration="20912000" />
+      <workItem from="1598263054963" duration="21439000" />
     </task>
     <servers />
   </component>
