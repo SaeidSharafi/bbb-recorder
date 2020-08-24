@@ -6,7 +6,7 @@ if [ $uid -ne 0 ]; then
   echo "Please run as root"
   exit 1
 fi
-if [[ ! -d $templockdir ]]; then
+if [[ ! -d "/etc/bbb-recorder" ]]; then
   mkdir "/etc/bbb-recorder"
 fi
 rm .env
