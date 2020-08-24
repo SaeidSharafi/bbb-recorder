@@ -20,7 +20,7 @@ for ((i = 0; i < SPAWNS; i++)); do
     echo "[$(date)] ${lockdir} created" 2>>"${scriptLog}"
     echo "[$(date)] starting recording script" 2>>"${scriptLog}"
   cd /home/kuro/bbb-recorder
-  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}${i}app.log" 2>&1 &
+  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}/app${i}.log" 2>&1 &
   fi
 done
 #trap 'rm -rf $lockdir' EXIT INT TERM
