@@ -33,7 +33,7 @@ if [ "$count" -gt "$SPAWNS" ]; then
     fi
   done
   if [ -z "${lockdir}" ]; then
-    echo "All dir locked, stopping script"
+    echo "All directories are locked, stopping script"
     exit 1
   else
     echo "Started ${SPAWNS} jobs, use stop.sh to kill the processes"
@@ -41,17 +41,16 @@ if [ "$count" -gt "$SPAWNS" ]; then
 else
   echo "number of recordings is ${count} and smaller than number of spawns(${SPAWNS})"
   echo "only one process will be launched"
-  templockdir="${baseLockDir}/bbb-recorder-lockdir-${i}"
-  if [[ -d $templockdir ]]; then
-    echo "All dir locked, stopping script"
+  lockdir="${baseLockDir}/bbb-recorder-lockdir-single"
+  if [[ -d $lockdir ]]; then
+    echo "directory is locked, stopping script"
     exit 1
   else
-    lockdir="${baseLockDir}/bbb-recorder-lockdir-single"
     mkdir $lockdir
     echo "[$(date)] ${lockdir} created"
     echo "[$(date)] starting recording script"
     cd /home/kuro/bbb-recorder
-    nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 >"${appLog}/app${i}.log" 2>&1 &
+    nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 >"${appLog}/app-single.log" 2>&1 &
   fi
   echo "Started recording process, use stop.sh to kill the process"
 fi
