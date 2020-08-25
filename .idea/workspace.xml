@@ -11,8 +11,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8c52c74c-501d-4186-8a40-d902d4b55f4f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/export.js" beforeDir="false" afterPath="$PROJECT_DIR$/export.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/start.sh" beforeDir="false" afterPath="$PROJECT_DIR$/start.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stop.sh" beforeDir="false" afterPath="$PROJECT_DIR$/stop.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,23 +50,15 @@
       <recent name="G:\Project\git\bbb-recorder" />
     </key>
   </component>
-  <component name="RunManager" selected="Node.js.export.js (1)">
-    <configuration name="export.js (1)" type="NodeJSConfigurationType" temporary="true" application-parameters="-l G:\ -i 2" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/export.js" working-dir="$PROJECT_DIR$">
-      <method v="2" />
-    </configuration>
-    <configuration name="export.js" type="NodeJSConfigurationType" application-parameters="-l G:\ -i 1" nameIsGenerated="true" path-to-js-file="export.js" working-dir="$PROJECT_DIR$">
+  <component name="RunManager">
+    <configuration name="export.js" type="NodeJSConfigurationType" application-parameters="-l G:\lockpocess\1 -i -1 --rebuild" nameIsGenerated="true" path-to-js-file="export.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <configuration name="export.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="export.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
-    <list>
-      <item itemvalue="Node.js.export.js" />
-      <item itemvalue="Node.js.export.js (1)" />
-    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Node.js.export.js (1)" />
         <item itemvalue="Node.js.export.js" />
       </list>
     </recent_temporary>
@@ -77,7 +72,8 @@
       <option name="presentableId" value="Default" />
       <updated>1598183621635</updated>
       <workItem from="1598183622988" duration="22610000" />
-      <workItem from="1598263054963" duration="22481000" />
+      <workItem from="1598263054963" duration="23226000" />
+      <workItem from="1598345218789" duration="4298000" />
     </task>
     <servers />
   </component>
@@ -101,10 +97,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="759" y="387" key="#Usage_Scope/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598198407866" />
-    <state x="257" y="326" width="1092" height="714" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1598283658391">
+    <state x="257" y="326" width="1092" height="714" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1598348209943">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="257" y="326" width="1092" height="714" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598283658391" />
+    <state x="257" y="326" width="1092" height="714" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598348209943" />
     <state x="734" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1598184996233">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -113,22 +109,22 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="287" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598184913913" />
-    <state width="1877" height="282" key="GridCell.Tab.0.bottom" timestamp="1598286204581">
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom" timestamp="1598348523859">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598286204581" />
-    <state width="1877" height="282" key="GridCell.Tab.0.center" timestamp="1598286204581">
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598348523859" />
+    <state width="1877" height="282" key="GridCell.Tab.0.center" timestamp="1598348523859">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598286204581" />
-    <state width="1877" height="282" key="GridCell.Tab.0.left" timestamp="1598286204581">
+    <state width="1877" height="282" key="GridCell.Tab.0.center/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598348523859" />
+    <state width="1877" height="282" key="GridCell.Tab.0.left" timestamp="1598348523859">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598286204581" />
-    <state width="1877" height="282" key="GridCell.Tab.0.right" timestamp="1598286204581">
+    <state width="1877" height="282" key="GridCell.Tab.0.left/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598348523859" />
+    <state width="1877" height="282" key="GridCell.Tab.0.right" timestamp="1598348523859">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598286204581" />
+    <state width="1877" height="282" key="GridCell.Tab.0.right/0.0.1920.1040/1920.0.1600.860@0.0.1920.1040" timestamp="1598348523859" />
     <state x="461" y="165" key="SettingsEditor" timestamp="1598198417501">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

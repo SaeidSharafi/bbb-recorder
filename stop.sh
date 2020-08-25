@@ -7,19 +7,32 @@ else
   echo ".env file cannot be found"
   exit 1
 fi
-echo "[$(date)] Cron task started" 2>>"${scriptLog}"
+exec >>"${scriptLog}" 2>&1
+echo "[$(date)] Cron task started"
 
 for ((i = 1; i <= SPAWNS; i++)); do
   lockdir="${baseLockDir}/bbb-recorder-lockdir-${i}"
   if [[ -d $lockdir ]]; then
     for entry in "${lockdir}"/*; do
-      echo "stopping job" 2>>"${scriptLog}"
-      echo $(basename "${entry}") 2>>"${scriptLog}"
+      echo "stopping job"
+      echo $(basename "${entry}")
       pid=$(basename "${entry}")
-      echo "Loc Directory: ${entry}" 2>>"${scriptLog}"
-      echo "job pid: ${pid}" 2>>"${scriptLog}"
+      echo "Loc Directory: ${entry}"
+      echo "job pid: ${pid}"
       kill -QUIT "${pid}" &
-      echo "${pid} stopped" 2>>"${scriptLog}"
+      echo "${pid} stopped"
     done
   fi
 done
+lockdir="${baseLockDir}/bbb-recorder-lockdir-single"
+if [[ -d $lockdir ]]; then
+  for entry in "${lockdir}"/*; do
+    echo "stopping job"
+    echo $(basename "${entry}")
+    pid=$(basename "${entry}")
+    echo "Loc Directory: ${entry}"
+    echo "job pid: ${pid}"
+    kill -QUIT "${pid}" &
+    echo "${pid} stopped"
+  done
+fi

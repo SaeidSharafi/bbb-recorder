@@ -36,50 +36,7 @@ process.on('SIGQUIT', function () {
 
     process.exit(1);
 });
-process.on('exit', (code) => {
-    console.log('Process exit event with code: ', code);
-    try {
 
-        // Removing lock files in recording directories
-        const dirs = fs.readdirSync(recordingsPath, {
-            withFileTypes: true
-        }).filter(c => c.isDirectory()).map(c => c.name);
-
-        let max_rooms = Math.floor(dirs.length / SPAWNS);
-
-        var index = Math.floor((argv.index - 1) * max_rooms);
-        console.log("starting index (of all recordings): " + index);
-
-        var lastIndex = Math.floor((argv.index) * max_rooms);
-        console.log("last index (of all recordings): " + lastIndex);
-
-        if (lastIndex >= dirs.length || (argv.index == SPAWNS)) {
-            lastIndex = dirs.length
-        }
-        var slicedDirs = dirs.slice(index,lastIndex);
-        slicedDirs.forEach((dir)=>{
-            let lockFile = recordingsPath+"/"+dir + "/.locked";
-            console.log("removing: " + lockFile);
-            if (fs.existsSync(lockFile)) {
-                fs.unlinkSync(lockFile);
-            }
-        });
-
-        // Removing lock directories and proccess id
-        console.log("removing processlock: " + process.pid);
-        fs.unlinkSync(argv.lockdir + "/" + process.pid)
-        console.log("removing lockdir: " + argv.lockdir);
-        fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
-            if (err) {
-                throw err;
-            }
-            console.log(`${argv.lockdir} is deleted!`);
-        });
-        //file removed
-    } catch (err) {
-        console.error(err)
-    }
-});
 
 console.debug(process.title)
 console.debug('Giving process a custom name: bbbrecorder')
@@ -139,54 +96,67 @@ async function main() {
 
         if (!rebuild) {
             let extension = convert ? ".mp4" : ".webm";
-            dirs.forEach( (dir,index,object) =>{
+            dirs.forEach((dir, index, object) => {
                 let target = copyToPath + "/" + dir + "/" + exportname + extension;
                 if (fs.existsSync(target)) {
                     console.warn(target + ' Already exist! skipping...');
-                    object.splice(index,1);
+                    object.splice(index, 1);
                 }
-            } );
+            });
 
         } else {
             console.log("Rebuilding all recordings")
         }
         console.log("All recordings: \n\t\t\t\t" + dirs.join("\n\t\t\t\t"));
-
-        console.log("Number of recordings: "+dirs.length);
-
-        let max_rooms = Math.floor(dirs.length / SPAWNS);
-        console.log("Number of recordings to process: " + max_rooms);
-
-        var index = Math.floor((argv.index - 1) * max_rooms);
-        console.log("starting index (of all recordings): " + index);
-
-        var lastIndex = Math.floor((argv.index) * max_rooms);
-        console.log("last index (of all recordings): " + lastIndex);
-
-        if (lastIndex >= dirs.length || (argv.index == SPAWNS)) {
-            lastIndex = dirs.length
-        }
         var slicedDirs = [];
+        if (argv.index != -1 && argv.index > 0) {
+            console.log("Number of recordings: " + dirs.length);
 
-        for (; index < lastIndex; index++) {
-            let lockFile = recordingsPath+"/"+dirs[index] + "/.locked";
-            if (!fs.existsSync(lockFile)) {
-                console.log("locking "+dirs[index]);
-                fs.writeFileSync(lockFile, "")
-                slicedDirs.push(dirs[index]);
-            }else {
-                console.log(dirs[index]+ " is already locked, skiping ..");
+            let max_rooms = Math.floor(dirs.length / SPAWNS);
+            console.log("Number of recordings to process: " + max_rooms);
+
+            var index = Math.floor((argv.index - 1) * max_rooms);
+            console.log("starting index (of all recordings): " + index);
+
+            var lastIndex = Math.floor((argv.index) * max_rooms);
+            console.log("last index (of all recordings): " + lastIndex);
+
+            if (lastIndex >= dirs.length || (argv.index == SPAWNS)) {
+                lastIndex = dirs.length
             }
 
+
+            for (; index < lastIndex; index++) {
+                let lockFile = recordingsPath + "/" + dirs[index] + "/.locked";
+                if (!fs.existsSync(lockFile)) {
+                    console.log("locking " + dirs[index]);
+                    fs.writeFileSync(lockFile, "")
+                    slicedDirs.push(dirs[index]);
+                } else {
+                    console.log(dirs[index] + " is already locked, skiping ..");
+                }
+
+            }
+            console.log("recordings to process :\n\t\t\t\t" + slicedDirs.join("\n\t\t\t\t"));
+        } else {
+            for (index = 0; index < dirs.length; index++) {
+                let lockFile = recordingsPath + "/" + dirs[index] + "/.locked";
+                if (!fs.existsSync(lockFile)) {
+                    console.log("locking " + dirs[index]);
+                    fs.writeFileSync(lockFile, "")
+                    slicedDirs.push(dirs[index]);
+                } else {
+                    console.log(dirs[index] + " is already locked, skiping ..");
+                }
+
+            }
         }
-        console.log("recordings to process :\n\t\t\t\t" + slicedDirs.join("\n\t\t\t\t"));
-
-
+        console.log(exportname);
         asyncForEach(slicedDirs, async (element) => {
             if (platform == "linux") {
                 xvfb.startSync()
             }
-
+            exportname = argv.name;
             url = bbbUrl + "/playback/presentation/2.0/" + playbackFile + "?meetingId=" + element;
             var meeting_id = element;
             console.log("Initializing options for meeting" + meeting_id)
@@ -205,11 +175,12 @@ async function main() {
 
 
             exportname += ".webm";
+            console.log("#1" + exportname);
             // Use meeting ID as export name if it isn't defined or if its value is "MEETING_ID"
             if (!exportname || exportname == "MEETING_ID") {
                 exportname = element + '.webm';
             }
-
+            console.log("#2" + exportname);
             var duration = argv.duration;
             // If duration isn't defined, set it in 0
             if (!duration) {
@@ -289,7 +260,7 @@ async function main() {
             await page.close()
             await browser.close()
             console.log("terminating browser");
-
+            console.log("#3" + exportname);
             if (convert) {
                 console.log("Converting to mp4");
                 convertAndCopy(exportname, meeting_id)
@@ -297,6 +268,7 @@ async function main() {
                 console.log("moving to target destination");
                 copyOnly(exportname, meeting_id)
             }
+            console.log("#4" + exportname);
             if (platform == "linux") {
                 xvfb.stopSync()
             }
@@ -314,6 +286,53 @@ async function main() {
 }
 
 main()
+process.on('exit', (code) => {
+    console.log('Process exit event with code: ', code);
+    try {
+        var slicedDirs = []
+        // Removing lock files in recording directories
+        const dirs = fs.readdirSync(recordingsPath, {
+            withFileTypes: true
+        }).filter(c => c.isDirectory()).map(c => c.name);
+        if (argv.index != -1 && argv.index != 0) {
+            let max_rooms = Math.floor(dirs.length / SPAWNS);
+
+            var index = Math.floor((argv.index - 1) * max_rooms);
+            console.log("starting index (of all recordings): " + index);
+
+            var lastIndex = Math.floor((argv.index) * max_rooms);
+            console.log("last index (of all recordings): " + lastIndex);
+
+            if (lastIndex >= dirs.length || (argv.index == SPAWNS)) {
+                lastIndex = dirs.length
+            }
+            slicedDirs = dirs.slice(index, lastIndex);
+        } else {
+            slicedDirs = dirs;
+        }
+        slicedDirs.forEach((dir) => {
+            let lockFile = recordingsPath + "/" + dir + "/.locked";
+            console.log("removing: " + lockFile);
+            if (fs.existsSync(lockFile)) {
+                fs.unlinkSync(lockFile);
+            }
+        });
+
+        // Removing lock directories and proccess id
+        console.log("removing processlock: " + process.pid);
+        fs.unlinkSync(argv.lockdir + "/" + process.pid)
+        console.log("removing lockdir: " + argv.lockdir);
+        fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
+            if (err) {
+                throw err;
+            }
+            console.log(`${argv.lockdir} is deleted!`);
+        });
+        //file removed
+    } catch (err) {
+        console.error(err)
+    }
+});
 
 function killScript() {
     console.warn("Force Closing");
@@ -377,11 +396,14 @@ function convertAndCopy(filename, meeting_id = "") {
 }
 
 function copyOnly(filename, meeting_id = "") {
-    var onlyfileName = filename.split(".webm")
+    console.log("#3.1" + filename);
+    var onlyfileName = filename.split(".webm");
+    console.log("#3.2" + onlyfileName);
     var copyFrom = homedir + "/Downloads/" + filename;
     let destinationPath = copyToPath + "/";
     if (meeting_id)
         destinationPath = copyToPath + "/" + meeting_id + "/";
+    console.log("#3.2" + filename);
     var copyTo = destinationPath + filename;
 
     if (!fs.existsSync(destinationPath)) {

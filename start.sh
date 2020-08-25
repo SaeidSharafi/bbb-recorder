@@ -8,29 +8,50 @@ else
   echo ".env file cannot be found"
   exit 1
 fi
-echo "[$(date)] Cron task started" 2>>"${scriptLog}"
+exec >>"${scriptLog}" 2>&1
+echo "[$(date)] Cron task started"
 lockdir=""
-for ((i = 1; i <= SPAWNS; i++)); do
+if [ $count -gt $SPAWNS ]; then
+  echo "number of recordings is ${count} and more than number of spawns(${SPAWNS})"
+  echo "multiple processes will be launched"
+  for ((i = 1; i <= SPAWNS; i++)); do
+    templockdir="${baseLockDir}/bbb-recorder-lockdir-${i}"
+    if [[ -d $templockdir ]]; then
+      continue
+    else
+      lockdir=$templockdir
+      mkdir $lockdir
+      echo "[$(date)] ${lockdir} created"
+      echo "[$(date)] starting recording script"
+      cd /home/kuro/bbb-recorder
+      nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}/app${i}.log" 2>&1 &
+    fi
+  done
+  if [ -z "${lockdir}" ]; then
+    echo "All dir locked, stopping script"
+    exit 1
+  else
+    echo "Started ${SPAWNS} jobs, use stop.sh to kill the processes"
+  fi
+else
+  echo "number of recordings is ${count} and smaller than number of spawns(${SPAWNS})"
+  echo "only one process will be launched"
   templockdir="${baseLockDir}/bbb-recorder-lockdir-${i}"
   if [[ -d $templockdir ]]; then
-    continue
+    echo "All dir locked, stopping script"
+    exit 1
   else
-    lockdir=$templockdir
+    lockdir="${baseLockDir}/bbb-recorder-lockdir-single"
     mkdir $lockdir
-    echo "[$(date)] ${lockdir} created" 2>>"${scriptLog}"
-    echo "[$(date)] starting recording script" 2>>"${scriptLog}"
-  cd /home/kuro/bbb-recorder
-  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}/app${i}.log" 2>&1 &
+    echo "[$(date)] ${lockdir} created"
+    echo "[$(date)] starting recording script"
+    cd /home/kuro/bbb-recorder
+    nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 >"${appLog}/app${i}.log" 2>&1 &
   fi
-done
-#trap 'rm -rf $lockdir' EXIT INT TERM
-
-if [ -z "${lockdir}" ]; then
-  echo "All dir locked, stopping script" 2>>"${scriptLog}"
-  exit 1
-else
-  echo "Started ${SPAWNS} jobs, use stop.sh to kill the process" 2>>"${scriptLog}"
+  echo "Started recording process, use stop.sh to kill the process"
 fi
+
+#trap 'rm -rf $lockdir' EXIT INT TERM
 
 # take pains to remove lock directory when script terminates
 
