@@ -9,9 +9,14 @@ else
   exit 1
 fi
 exec >>"${scriptLog}" 2>&1
+count=$( ls -d "${recordingsPath}"/* | wc -l)
 echo "[$(date)] Cron task started"
 lockdir=""
-if [ $count -gt $SPAWNS ]; then
+if [ "$count" -le 0 ]; then
+  echo "Nothing to process. exiting.."
+  exit 0
+fi
+if [ "$count" -gt "$SPAWNS" ]; then
   echo "number of recordings is ${count} and more than number of spawns(${SPAWNS})"
   echo "multiple processes will be launched"
   for ((i = 1; i <= SPAWNS; i++)); do
