@@ -177,12 +177,12 @@ async function main() {
 
 
             exportname += ".webm";
-            console.log("#1" + exportname);
+
             // Use meeting ID as export name if it isn't defined or if its value is "MEETING_ID"
             if (!exportname || exportname == "MEETING_ID") {
                 exportname = element + '.webm';
             }
-            console.log("#2" + exportname);
+
             var duration = argv.duration;
             // If duration isn't defined, set it in 0
             if (!duration) {

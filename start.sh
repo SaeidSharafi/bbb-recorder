@@ -8,7 +8,7 @@ else
   echo ".env file cannot be found"
   exit 1
 fi
-exec >>"${scriptLog}" 2>&1
+exec 2>>"${scriptLog}" 2>&1
 count=$( ls -d "${recordingsPath}"/* | wc -l)
 echo "[$(date)] Cron task started"
 lockdir=""

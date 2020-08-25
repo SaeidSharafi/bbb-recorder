@@ -7,7 +7,7 @@ else
   echo ".env file cannot be found"
   exit 1
 fi
-exec >>"${scriptLog}" 2>&1
+exec 2>>"${scriptLog}" 2>&1
 echo "[$(date)] Cron task started"
 
 for ((i = 1; i <= SPAWNS; i++)); do
