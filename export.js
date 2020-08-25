@@ -3,6 +3,8 @@ const Xvfb = require('xvfb');
 const fs = require('fs');
 const os = require('os');
 const yargs = require('yargs');
+const parseString = require("xml2js").parseString;
+const xml2js = require("xml2js");
 const homedir = os.homedir();
 const platform = os.platform();
 const argv = yargs
@@ -45,7 +47,7 @@ console.debug('Process started. PID: ' + process.pid + ' | name: ' + process.tit
 console.debug(argv.lockdir + "/" + process.pid)
 fs.writeFileSync(argv.lockdir + "/" + process.pid, "")
 
-const {copyToPath, playbackFile, bbbUrl, recordingsPath, SPAWNS} = require('./env');
+const {copyToPath, playbackFile, bbbUrl, recordingsPath, keepBBBRecording, SPAWNS} = require('./env');
 
 const spawn = require('child_process').spawn;
 const path = require('path');
@@ -235,9 +237,9 @@ async function main() {
             }
             console.log("duration to record:" + duration);
             await page.waitForSelector('button[class=acorn-play-button]');
-            //await page.$eval('#navbar', element => element.style.display = "none");
-            //await page.$eval('#copyright', element => element.style.display = "none");
-            //await page.$eval('.acorn-controls', element => element.style.opacity = "0");
+            await page.$eval('#navbar', element => element.style.display = "none");
+            await page.$eval('#copyright', element => element.style.display = "none");
+            await page.$eval('.acorn-controls', element => element.style.opacity = "0");
             await page.click('button[class=acorn-play-button]', {waitUntil: 'domcontentloaded'});
             console.log("Start recording");
             await page.evaluate((x) => {
@@ -260,7 +262,7 @@ async function main() {
             await page.close()
             await browser.close()
             console.log("terminating browser");
-            console.log("#3" + exportname);
+
             if (convert) {
                 console.log("Converting to mp4");
                 convertAndCopy(exportname, meeting_id)
@@ -268,15 +270,15 @@ async function main() {
                 console.log("moving to target destination");
                 copyOnly(exportname, meeting_id)
             }
-            console.log("#4" + exportname);
+
             if (platform == "linux") {
                 xvfb.stopSync()
             }
 
-            let lockFile = copyToPath + "/" + meeting_id + "/.locked";
-            if (fs.existsSync(lockFile)) {
-                fs.unlinkSync(lockFile);
-            }
+            // let lockFile = copyToPath + "/" + meeting_id + "/.locked";
+            // if (fs.existsSync(lockFile)) {
+            //     fs.unlinkSync(lockFile);
+            // }
         });
 
     } catch (err) {
@@ -314,6 +316,7 @@ process.on('exit', (code) => {
             let lockFile = recordingsPath + "/" + dir + "/.locked";
             console.log("removing: " + lockFile);
             if (fs.existsSync(lockFile)) {
+
                 fs.unlinkSync(lockFile);
             }
         });
@@ -389,21 +392,21 @@ function convertAndCopy(filename, meeting_id = "") {
             console.log("Convertion done to here: " + copyTo)
             fs.unlinkSync(copyFrom);
             console.log('successfully deleted ' + copyFrom);
+            if (meeting_id)
+                changeMeta(meeting_id, mp4File);
         }
 
     });
 
+
 }
 
 function copyOnly(filename, meeting_id = "") {
-    console.log("#3.1" + filename);
     var onlyfileName = filename.split(".webm");
-    console.log("#3.2" + onlyfileName);
     var copyFrom = homedir + "/Downloads/" + filename;
     let destinationPath = copyToPath + "/";
     if (meeting_id)
         destinationPath = copyToPath + "/" + meeting_id + "/";
-    console.log("#3.2" + filename);
     var copyTo = destinationPath + filename;
 
     if (!fs.existsSync(destinationPath)) {
@@ -417,9 +420,80 @@ function copyOnly(filename, meeting_id = "") {
 
         fs.unlinkSync(copyFrom);
         console.log('successfully delete ' + copyFrom);
+        if (meeting_id)
+            changeMeta(meeting_id, filename);
     } catch (err) {
         console.log(err)
     }
+}
+
+function changeMeta(meeting_id, filename) {
+    let xmlFilePath = copyToPath + "/" + meeting_id + "/metadata.xml";
+    let dirPath = copyToPath + "/" + meeting_id;
+    console.log(xmlFilePath);
+    //var parsString = require("xml2js").parseString;
+
+    try {
+        let data = fs.readFileSync(xmlFilePath, "utf-8");
+        //console.log("data");
+        //console.log(data);
+        parseString(data, function (err, result) {
+                if (err) console.log(err);
+
+                console.log(result);
+                var json = result;
+                if (!keepBBBRecording) {
+                    console.log("changing thumbnail address");
+                    thumbPath = path.join(recordingsPath, meeting_id, "presentation");
+                    if (fs.existsSync(thumbPath)) {
+                        let dirs = fs.readdirSync(thumbPath, {withFileTypes: true});
+                        let copyFrom = "";
+                        dirs.forEach(dir => {
+                            if (dir.isDirectory()) {
+                                copyFrom = path.join(recordingsPath, meeting_id, "presentation", dir.name, "thumbnails", "thumb-1.png");
+                            }
+                        });
+                        let copyTo = path.join(recordingsPath, meeting_id, "thumb.png");
+
+                        if (fs.existsSync(copyFrom)) {
+                            fs.copyFileSync(copyFrom, copyTo)
+                            json.recording.playback[0].extensions[0].preview[0].images[0].image[0]._ =
+                                bbbUrl + "/download/presentation/" + meeting_id + "/" + "thumb.png";
+                        }
+                    }
+                    console.log("setting presentaion address to point video file");
+                    json.recording.playback[0].format = "download";
+                    json.recording.playback[0].link =
+                        bbbUrl + "/download/presentation/" + meeting_id + "/" + filename;
+
+                    let files = fs.readdirSync(dirPath, {withFileTypes: true});
+                    files.forEach(file => {
+                        const fileDir = path.join(dirPath, file.name)
+                        if (file.name != 'metadata.xml' && file.name != filename && file.name != 'thumb.png') {
+                            if (file.isDirectory()) {
+                                console.info("Deleting Directory: " + fileDir)
+                                fs.rmdirSync(fileDir, {recursive: true})
+                            } else {
+                                console.info("Deleting File: " + fileDir)
+                                fs.unlinkSync(fileDir);
+                            }
+                        }
+                    })
+                }
+
+                var builder = new xml2js.Builder();
+                var xml = builder.buildObject(json);
+                console.log("re-writing xml file");
+                var resualt = fs.writeFileSync(xmlFilePath, xml);
+
+            }
+        );
+    } catch (err) {
+        console.error(err)
+
+    }
+
+
 }
 
 async function asyncForEach(array, callback) {
