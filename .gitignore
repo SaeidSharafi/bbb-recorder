@@ -5,4 +5,4 @@ config.json
 recordings
 dirtest
 .env
-.idea
+.idea/
