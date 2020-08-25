@@ -30,6 +30,7 @@ if [ "$count" -gt "$SPAWNS" ]; then
       echo "[$(date)] starting recording script"
       cd /home/kuro/bbb-recorder
       nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}/app${i}.log" 2>&1 &
+      sleep 2
     fi
   done
   if [ -z "${lockdir}" ]; then

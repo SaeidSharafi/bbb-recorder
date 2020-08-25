@@ -262,7 +262,9 @@ async function main() {
             await page.close()
             await browser.close()
             console.log("terminating browser");
-
+            if (platform == "linux") {
+                xvfb.stopSync()
+            }
             if (convert) {
                 console.log("Converting to mp4");
                 convertAndCopy(exportname, meeting_id)
@@ -271,9 +273,7 @@ async function main() {
                 copyOnly(exportname, meeting_id)
             }
 
-            if (platform == "linux") {
-                xvfb.stopSync()
-            }
+
 
             // let lockFile = copyToPath + "/" + meeting_id + "/.locked";
             // if (fs.existsSync(lockFile)) {
