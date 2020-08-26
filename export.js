@@ -430,7 +430,7 @@ function copyOnly(filename, meeting_id = "") {
 function changeMeta(meeting_id, filename) {
     let xmlFilePath = copyToPath + "/" + meeting_id + "/metadata.xml";
     let dirPath = copyToPath + "/" + meeting_id;
-    console.log(xmlFilePath);
+    console.log("xml Path:" + xmlFilePath);
     //var parsString = require("xml2js").parseString;
 
     try {
@@ -440,9 +440,9 @@ function changeMeta(meeting_id, filename) {
         parseString(data, function (err, result) {
                 if (err) console.log(err);
 
-                console.log(result);
+                //console.log(result);
                 var json = result;
-                if (!keepBBBRecording) {
+                if (keepBBBRecording == 'false') {
                     console.log("changing thumbnail address");
                     thumbPath = path.join(recordingsPath, meeting_id, "presentation");
                     if (fs.existsSync(thumbPath)) {
@@ -479,12 +479,13 @@ function changeMeta(meeting_id, filename) {
                             }
                         }
                     })
+                    var builder = new xml2js.Builder();
+                    var xml = builder.buildObject(json);
+                    console.log("re-writing xml file");
+                    var resualt = fs.writeFileSync(xmlFilePath, xml);
                 }
 
-                var builder = new xml2js.Builder();
-                var xml = builder.buildObject(json);
-                console.log("re-writing xml file");
-                var resualt = fs.writeFileSync(xmlFilePath, xml);
+
 
             }
         );
