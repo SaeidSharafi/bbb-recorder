@@ -109,6 +109,7 @@ async function main() {
                     changeMeta(dir, exportname + extension);
                 }
             });
+            clearlock(argv.lockdir,process.pid)
             return 0;
         }
 
@@ -288,7 +289,7 @@ async function main() {
                 copyOnly(exportname, meeting_id)
             }
 
-
+            clearlock(argv.lockdir,process.pid)
             // let lockFile = copyToPath + "/" + meeting_id + "/.locked";
             // if (fs.existsSync(lockFile)) {
             //     fs.unlinkSync(lockFile);
@@ -297,6 +298,7 @@ async function main() {
 
     } catch (err) {
         console.log(err)
+
     }
 
 }
@@ -456,94 +458,90 @@ function changeMeta(meeting_id, filename) {
         //console.log("data");
         //console.log(data);
         parseString(data, function (err, result) {
-                if (err) console.log(err);
+            if (err) console.log(err);
 
-                //console.log(result);
-                var json = result;
+            //console.log(result);
+            var json = result;
 
-                console.log("updating xmls to add video download link");
-                let type = "download";
-                let link =
-                    bbbUrl + "/download/presentation/" + meeting_id + "/" + filename;
+            console.log("updating xmls to add video download link");
+            let type = "download";
+            let link =
+                bbbUrl + "/download/presentation/" + meeting_id + "/" + filename;
 
-                if (keepBBBRecording == 'false') {
-                    let files = fs.readdirSync(dirPath, {withFileTypes: true});
-                    files.forEach(file => {
-                        const fileDir = path.join(dirPath, file.name)
-                        if (file.name != 'metadata.xml' && file.name != filename && file.name != 'thumb.png') {
-                            if (file.isDirectory()) {
-                                console.info("Deleting Directory: " + fileDir)
-                                fs.rmdirSync(fileDir, {recursive: true})
-                            } else {
-                                console.info("Deleting File: " + fileDir)
-                                fs.unlinkSync(fileDir);
-                            }
-                        }
-                    })
-                    console.log("changing thumbnail address");
-                    thumbPath = path.join(recordingsPath, meeting_id, "presentation");
-                    if (fs.existsSync(thumbPath)) {
-                        let dirs = fs.readdirSync(thumbPath, {withFileTypes: true});
-                        let copyFrom = "";
-                        dirs.forEach(dir => {
-                            if (dir.isDirectory()) {
-                                copyFrom = path.join(recordingsPath, meeting_id, "presentation", dir.name, "thumbnails", "thumb-1.png");
-                            }
-                        });
-                        let copyTo = path.join(recordingsPath, meeting_id, "thumb.png");
-
-                        if (fs.existsSync(copyFrom)) {
-                            fs.copyFileSync(copyFrom, copyTo)
-                            json.recording.playback[0].extensions[0].preview[0].images[0].image[0]._ =
-                                bbbUrl + "/download/presentation/" + meeting_id + "/" + "thumb.png";
+            if (keepBBBRecording == 'false') {
+                let files = fs.readdirSync(dirPath, {withFileTypes: true});
+                files.forEach(file => {
+                    const fileDir = path.join(dirPath, file.name)
+                    if (file.name != 'metadata.xml' && file.name != filename && file.name != 'thumb.png') {
+                        if (file.isDirectory()) {
+                            console.info("Deleting Directory: " + fileDir)
+                            fs.rmdirSync(fileDir, {recursive: true})
+                        } else {
+                            console.info("Deleting File: " + fileDir)
+                            fs.unlinkSync(fileDir);
                         }
                     }
+                })
+                console.log("changing thumbnail address");
+                thumbPath = path.join(recordingsPath, meeting_id, "presentation");
+                if (fs.existsSync(thumbPath)) {
+                    let dirs = fs.readdirSync(thumbPath, {withFileTypes: true});
+                    let copyFrom = "";
+                    dirs.forEach(dir => {
+                        if (dir.isDirectory()) {
+                            copyFrom = path.join(recordingsPath, meeting_id, "presentation", dir.name, "thumbnails", "thumb-1.png");
+                        }
+                    });
+                    let copyTo = path.join(recordingsPath, meeting_id, "thumb.png");
 
-                    console.log("set playback format : " + type);
-                    json.recording.playback[0].format = type;
-
-                    console.log("set playback link : " + link);
-                    json.recording.playback[0].link = link
-
-                } else {
-                    console.log("set metadata downlod : " + link);
-                    json.recording.meta[0].download = link;
+                    if (fs.existsSync(copyFrom)) {
+                        fs.copyFileSync(copyFrom, copyTo)
+                        json.recording.playback[0].extensions[0].preview[0].images[0].image[0]._ =
+                            bbbUrl + "/download/presentation/" + meeting_id + "/" + "thumb.png";
+                    }
                 }
-                var builder = new xml2js.Builder();
-                var xml = builder.buildObject(json);
-                console.log("re-writing xml file");
-                //console.log(xml);
-                var resualt = fs.writeFileSync(xmlFilePath, xml);
-                // Removing lock directories and proccess id
-                console.log("removing processlock: " + process.pid);
-                fs.unlinkSync(argv.lockdir + "/" + process.pid)
-                console.log("removing lockdir: " + argv.lockdir);
-                fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
-                    if (err) {
-                        throw err;
-                    }
-                    console.log(`${argv.lockdir} is deleted!`);
-                });
 
+                console.log("set playback format : " + type);
+                json.recording.playback[0].format = type;
+
+                console.log("set playback link : " + link);
+                json.recording.playback[0].link = link
+
+            } else {
+                console.log("set metadata downlod : " + link);
+                json.recording.meta[0].download = link;
             }
-        );
+            var builder = new xml2js.Builder();
+            var xml = builder.buildObject(json);
+            console.log("re-writing xml file");
+            //console.log(xml);
+            var resualt = fs.writeFileSync(xmlFilePath, xml);
+
+        }
+    )
+        ;
     } catch (err) {
         console.error(err);
-        // Removing lock directories and proccess id
-        console.log("removing processlock: " + process.pid);
-        fs.unlinkSync(argv.lockdir + "/" + process.pid)
-        console.log("removing lockdir: " + argv.lockdir);
-        fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
-            if (err) {
-                throw err;
-            }
-            console.log(`${argv.lockdir} is deleted!`);
-        });
     }
 
 
 }
-
+function clearlock(lockdir,pid){
+    try {
+        // Removing lock directories and proccess id
+        console.log("removing processlock: " + pid);
+        fs.unlinkSync(lockdir + "/" + pid)
+        console.log("removing lockdir: " + lockdir);
+        fs.rmdirSync(lockdir, {recursive: true}, (err) => {
+            if (err) {
+                throw err;
+            }
+            console.log(`${lockdir} is deleted!`);
+        });
+    }catch (err) {
+        console.error(err);
+    }
+}
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
