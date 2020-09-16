@@ -18,6 +18,10 @@ while true; do
         echo "${lockdir} removed!"
       fi
     done
+    rm -rf "${baseLockDir}/bbb-recorder-lockdir-single"
+    echo "${baseLockDir}/bbb-recorder-lockdir-single removed!"
+    rm -rf "${baseLockDir}/bbb-recorder-lockdir-xml"
+    echo "${baseLockDir}/bbb-recorder-lockdir-single removed!"
     break
     ;;
   [Nn]*) exit ;;

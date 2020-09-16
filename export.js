@@ -103,11 +103,11 @@ async function main() {
         const dirs = fs.readdirSync(recordingsPath, {
             withFileTypes: true
         }).filter(c => c.isDirectory()).map(c => c.name);
-        if (argv.xml){
+        if (argv.xml) {
             dirs.forEach((dir, index, object) => {
                 let target = copyToPath + "/" + dir + "/" + exportname + extension;
                 if (fs.existsSync(target)) {
-                    changeMeta(dir,exportname + extension);
+                    changeMeta(dir, exportname + extension);
                 }
             });
             return 0;
@@ -508,19 +508,38 @@ function changeMeta(meeting_id, filename) {
 
                 } else {
                     console.log("set metadata downlod : " + link);
-                    json.recording.meta[0].download= link;
+                    json.recording.meta[0].download = link;
                 }
                 var builder = new xml2js.Builder();
                 var xml = builder.buildObject(json);
                 console.log("re-writing xml file");
                 //console.log(xml);
                 var resualt = fs.writeFileSync(xmlFilePath, xml);
+                // Removing lock directories and proccess id
+                console.log("removing processlock: " + process.pid);
+                fs.unlinkSync(argv.lockdir + "/" + process.pid)
+                console.log("removing lockdir: " + argv.lockdir);
+                fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log(`${argv.lockdir} is deleted!`);
+                });
 
             }
         );
     } catch (err) {
-        console.error(err)
-
+        console.error(err);
+        // Removing lock directories and proccess id
+        console.log("removing processlock: " + process.pid);
+        fs.unlinkSync(argv.lockdir + "/" + process.pid)
+        console.log("removing lockdir: " + argv.lockdir);
+        fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
+            if (err) {
+                throw err;
+            }
+            console.log(`${argv.lockdir} is deleted!`);
+        });
     }
 
 

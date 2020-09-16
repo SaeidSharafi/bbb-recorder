@@ -35,6 +35,7 @@ else
 fi
 
 
+
 #trap 'rm -rf $lockdir' EXIT INT TERM
 
 # take pains to remove lock directory when script terminates
