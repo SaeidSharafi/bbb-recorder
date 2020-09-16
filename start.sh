@@ -55,7 +55,7 @@ else
     echo "[$(date)] ${lockdir} created"
     echo "[$(date)] starting recording script"
     cd "${recorderDir}"
-    /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 >"${appLog}/app-single.log" 2>&1
+    nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 >"${appLog}/app-single.log" 2>&1 &
   fi
 
   echo "Started recording process, use stop.sh to kill the process"

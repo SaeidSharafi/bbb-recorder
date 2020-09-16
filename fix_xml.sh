@@ -31,7 +31,7 @@ else
   echo "[$(date)] ${lockdir} created"
   echo "[$(date)] starting xml re-write"
   cd "${recorderDir}"
-  nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 --xml >"${appLog}/app-single.log" 2>&1 &
+  /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 --xml >"${appLog}/app-single.log" 2>&1
 fi
 
 
