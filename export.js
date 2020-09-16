@@ -289,13 +289,13 @@ async function main() {
                 copyOnly(exportname, meeting_id)
             }
 
-            clearlock(argv.lockdir,process.pid)
+
             // let lockFile = copyToPath + "/" + meeting_id + "/.locked";
             // if (fs.existsSync(lockFile)) {
             //     fs.unlinkSync(lockFile);
             // }
         });
-
+        clearlock(argv.lockdir,process.pid);
     } catch (err) {
         console.log(err)
 
@@ -337,16 +337,7 @@ process.on('exit', (code) => {
             }
         });
 
-        // Removing lock directories and proccess id
-        console.log("removing processlock: " + process.pid);
-        fs.unlinkSync(argv.lockdir + "/" + process.pid)
-        console.log("removing lockdir: " + argv.lockdir);
-        fs.rmdirSync(argv.lockdir, {recursive: true}, (err) => {
-            if (err) {
-                throw err;
-            }
-            console.log(`${argv.lockdir} is deleted!`);
-        });
+        clearlock(argv.lockdir,process.pid)
         if (platform == "linux") {
             xvfb.stopSync()
         }
@@ -529,15 +520,20 @@ function changeMeta(meeting_id, filename) {
 function clearlock(lockdir,pid){
     try {
         // Removing lock directories and proccess id
-        console.log("removing processlock: " + pid);
-        fs.unlinkSync(lockdir + "/" + pid)
-        console.log("removing lockdir: " + lockdir);
-        fs.rmdirSync(lockdir, {recursive: true}, (err) => {
-            if (err) {
-                throw err;
-            }
-            console.log(`${lockdir} is deleted!`);
-        });
+        if (fs.existsSync(lockdir + "/" + pid)) {
+            console.log("removing processlock: " + pid);
+            fs.unlinkSync(lockdir + "/" + pid);
+            console.log(`${pid} is deleted!`);
+        }
+        if (fs.existsSync(lockdir)) {
+            console.log("removing lockdir: " + lockdir);
+            fs.rmdirSync(lockdir, {recursive: true}, (err) => {
+                if (err) {
+                    throw err;
+                }
+                console.log(`${lockdir} is deleted!`);
+            });
+        }
     }catch (err) {
         console.error(err);
     }
