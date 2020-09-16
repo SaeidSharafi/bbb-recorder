@@ -445,9 +445,9 @@ function copyOnly(filename, meeting_id = "") {
 }
 
 function changeMeta(meeting_id, filename) {
-    copyToPathT = "G:/Project/git/bbb-recorder/recordings";
-    let xmlFilePath = copyToPathT + "/" + meeting_id + "/metadata.xml";
-    let dirPath = copyToPathT + "/" + meeting_id;
+    //copyToPathT = "G:/Project/git/bbb-recorder/recordings";
+    let xmlFilePath = copyToPath + "/" + meeting_id + "/metadata.xml";
+    let dirPath = copyToPath + "/" + meeting_id;
     console.log("xml Path:" + xmlFilePath);
     //var parsString = require("xml2js").parseString;
 
