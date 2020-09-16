@@ -1,5 +1,5 @@
 #!/bin/bash
-. /home/kuro/.bashrc
+. /root/.bashrc
 envFile=/etc/bbb-recorder/.env
 if [ -f "$envFile" ]; then
   export $(cat "$envFile" | sed 's/#.*//g' | xargs)

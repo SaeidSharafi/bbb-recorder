@@ -1,5 +1,5 @@
 #!/bin/bash
-. /home/kuro/.bashrc
+. /root/.bashrc
 
 envFile=/etc/bbb-recorder/.env
 if [ -f "$envFile" ]; then
@@ -8,8 +8,12 @@ else
   echo ".env file cannot be found"
   exit 1
 fi
+if [ ! -d "$recorderDir" ]; then
+  echo "installation directory could not be found, check .env file"
+  exit 1
+fi
 exec 2>>"${scriptLog}" 2>&1
-count=$( ls -d "${recordingsPath}"/* | wc -l)
+count=$(ls -d "${recordingsPath}"/* | wc -l)
 echo "[$(date)] Cron task started"
 lockdir=""
 if [ "$count" -le 0 ]; then
@@ -28,7 +32,7 @@ if [ "$count" -gt "$SPAWNS" ]; then
       mkdir $lockdir
       echo "[$(date)] ${lockdir} created"
       echo "[$(date)] starting recording script"
-      cd /home/kuro/bbb-recorder
+      cd "{$recorderDir}"
       nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}/app${i}.log" 2>&1 &
       sleep 2
     fi
@@ -50,7 +54,7 @@ else
     mkdir $lockdir
     echo "[$(date)] ${lockdir} created"
     echo "[$(date)] starting recording script"
-    cd /home/kuro/bbb-recorder
+    cd "{$recorderDir}"
     nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 >"${appLog}/app-single.log" 2>&1 &
   fi
   echo "Started recording process, use stop.sh to kill the process"

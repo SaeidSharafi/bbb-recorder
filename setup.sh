@@ -1,5 +1,5 @@
 #!/bin/bash
-. /home/kuro/.bashrc
+. /root/.bashrc
 # Check if we are root
 uid=$(id -u)
 if [ $uid -ne 0 ]; then
