@@ -32,7 +32,7 @@ if [ "$count" -gt "$SPAWNS" ]; then
       mkdir $lockdir
       echo "[$(date)] ${lockdir} created"
       echo "[$(date)] starting recording script"
-      cd "{$recorderDir}"
+      cd "${recorderDir}"
       nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index "${i}" >"${appLog}/app${i}.log" 2>&1 &
       sleep 2
     fi
@@ -54,7 +54,7 @@ else
     mkdir $lockdir
     echo "[$(date)] ${lockdir} created"
     echo "[$(date)] starting recording script"
-    cd "{$recorderDir}"
+    cd "${recorderDir}"
     nohup /usr/local/bin/node export.js --lockdir "${lockdir}" --index -1 >"${appLog}/app-single.log" 2>&1 &
   fi
   echo "Started recording process, use stop.sh to kill the process"
