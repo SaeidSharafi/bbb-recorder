@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer');
-const cloneDeep = require('lodash/clonedeep');
 const Xvfb = require('xvfb');
 const fs = require('fs');
 const os = require('os');
